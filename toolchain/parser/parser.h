@@ -36,7 +36,7 @@ class Parser {
   enum class OperatorFixity { Prefix, Infix, Postfix };
 
   // Supported kinds of patterns for HandlePattern.
-  enum class PatternKind { Parameter, Variable };
+  enum class PatternKind { Parameter, Variable, MeParam };
 
   // Helper class for tracing state_stack_ on crashes.
   class PrettyStackTraceParseState;
@@ -94,6 +94,14 @@ class Parser {
 
   // The kind of brace expression being evaluated.
   enum class BraceExpressionKind { Unknown, Value, Type };
+
+  // Gives information about the language construct/context being parsed. For
+  // now, a simple enum but can be extended later to provide more information as
+  // necessary.
+  enum class ParseContext {
+    File,  // Top-level context.
+    Interface,
+  };
 
   Parser(ParseTree& tree, TokenizedBuffer& tokens,
          TokenDiagnosticEmitter& emitter);
@@ -266,6 +274,8 @@ class Parser {
   // Handles PatternAs(FunctionParameter|Variable).
   auto HandlePattern(PatternKind pattern_kind) -> void;
 
+  auto HandleMePattern() -> void;
+
   // Handles the `;` after a keyword statement.
   auto HandleStatementKeywordFinish(ParseNodeKind node_kind) -> void;
 
@@ -290,6 +300,8 @@ class Parser {
   TokenizedBuffer::TokenIterator end_;
 
   llvm::SmallVector<StateStackEntry> state_stack_;
+  // TODO This can be a mini-stack of contexts rather than a simple variable.
+  ParseContext stack_context_;
 };
 
 }  // namespace Carbon
